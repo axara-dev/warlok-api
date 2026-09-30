@@ -1,10 +1,10 @@
-import { IsNotEmpty, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class TransferShopDto {
   @ApiProperty({
     example: "",
-    description: "User ID of the new shop owner"
+    description: "ID of the user who will become the new shop owner"
   })
   @IsString()
   @IsNotEmpty()

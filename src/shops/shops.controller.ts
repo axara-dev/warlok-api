@@ -18,7 +18,6 @@ import { CheckSlugDto } from "./dto/check-slug.dto";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { TransferShopDto } from "./dto/transfer-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
-import { UpdateShopStatusDto } from "./dto/update-shop-status.dto";
 import { ShopsService } from "./shops.service";
 
 @ApiTags("Shops")
@@ -64,6 +63,22 @@ export class ShopsController {
     return this.shopsService.findMine(session.user.id);
   }
 
+  @Get("me/:slug")
+  @ApiOperation({
+    summary: "Get current user's shop by slug"
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Returns a shop owned by the current user."
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Shop not found."
+  })
+  findMineBySlug(@Session() session: UserSession, @Param("slug") slug: string) {
+    return this.shopsService.findMineBySlug(session.user.id, slug);
+  }
+
   @Get(":slug")
   @AllowAnonymous()
   @ApiOperation({
@@ -94,6 +109,10 @@ export class ShopsController {
     description: "Invalid request data."
   })
   @ApiResponse({
+    status: 403,
+    description: "Shop limit reached for subscription plan."
+  })
+  @ApiResponse({
     status: 409,
     description: "Shop slug already exists."
   })
@@ -119,22 +138,6 @@ export class ShopsController {
     @Body() dto: UpdateShopDto
   ) {
     return this.shopsService.update(session.user.id, slug, dto);
-  }
-
-  @Patch(":slug/status")
-  @ApiOperation({
-    summary: "Update shop status"
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Shop status updated successfully."
-  })
-  updateStatus(
-    @Session() session: UserSession,
-    @Param("slug") slug: string,
-    @Body() dto: UpdateShopStatusDto
-  ) {
-    return this.shopsService.updateStatus(session.user.id, slug, dto.isActive);
   }
 
   @Post(":slug/transfer")

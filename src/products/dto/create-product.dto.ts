@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+  IsBoolean,
   IsInt,
-  IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
@@ -12,10 +12,8 @@ import {
 
 export class CreateProductDto {
   @ApiProperty({
-    description: "Product name",
     example: "",
-    minLength: 2,
-    maxLength: 150
+    description: "Product name"
   })
   @IsString()
   @MinLength(2)
@@ -23,11 +21,9 @@ export class CreateProductDto {
   name: string;
 
   @ApiProperty({
-    description: "Unique product slug",
     example: "",
-    minLength: 3,
-    maxLength: 100,
-    pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    description:
+      "Unique product slug within the shop. Only lowercase letters, numbers, and hyphens are allowed."
   })
   @IsString()
   @MinLength(3)
@@ -38,29 +34,32 @@ export class CreateProductDto {
   slug: string;
 
   @ApiPropertyOptional({
-    description: "Product description",
     example: "",
-    maxLength: 1000
+    description: "Optional product description"
   })
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(2000)
   description?: string;
 
   @ApiProperty({
-    description: "Product price in the smallest currency unit",
+    example: "",
+    description: "Product category ID"
+  })
+  @IsString()
+  categoryId: string;
+
+  @ApiProperty({
     example: 0,
-    minimum: 0
+    description: "Product price in the smallest currency unit"
   })
   @IsInt()
   @Min(0)
   price: number;
 
   @ApiPropertyOptional({
-    description: "Available product stock",
     example: 0,
-    minimum: 0,
-    default: 0
+    description: "Product stock quantity"
   })
   @IsOptional()
   @IsInt()
@@ -68,12 +67,19 @@ export class CreateProductDto {
   stock?: number;
 
   @ApiPropertyOptional({
-    description: "Product image URL",
     example: "",
-    maxLength: 2048
+    description: "Optional product image URL"
   })
   @IsOptional()
   @IsString()
   @MaxLength(2048)
   image?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: "Whether the product is active"
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

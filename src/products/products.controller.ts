@@ -16,7 +16,6 @@ import {
 
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
-import { UpdateProductStatusDto } from "./dto/update-product-status.dto";
 import { ProductsService } from "./products.service";
 
 @ApiTags("Products")
@@ -32,10 +31,6 @@ export class ProductsController {
   @ApiResponse({
     status: 200,
     description: "List of active products in the shop."
-  })
-  @ApiResponse({
-    status: 404,
-    description: "Shop not found."
   })
   findAll(@Param("shop_slug") shopSlug: string) {
     return this.productsService.findAll(shopSlug);
@@ -54,11 +49,11 @@ export class ProductsController {
     status: 404,
     description: "Product not found."
   })
-  findOne(
+  findBySlug(
     @Param("shop_slug") shopSlug: string,
     @Param("product_slug") productSlug: string
   ) {
-    return this.productsService.findOne(shopSlug, productSlug);
+    return this.productsService.findBySlug(shopSlug, productSlug);
   }
 
   @Post()
@@ -72,6 +67,10 @@ export class ProductsController {
   @ApiResponse({
     status: 400,
     description: "Invalid request data."
+  })
+  @ApiResponse({
+    status: 403,
+    description: "Product limit reached for subscription plan."
   })
   @ApiResponse({
     status: 404,
@@ -112,32 +111,6 @@ export class ProductsController {
       shopSlug,
       productSlug,
       dto
-    );
-  }
-
-  @Patch(":product_slug/status")
-  @ApiOperation({
-    summary: "Update product status"
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Product status updated successfully."
-  })
-  @ApiResponse({
-    status: 404,
-    description: "Product not found."
-  })
-  updateStatus(
-    @Session() session: UserSession,
-    @Param("shop_slug") shopSlug: string,
-    @Param("product_slug") productSlug: string,
-    @Body() dto: UpdateProductStatusDto
-  ) {
-    return this.productsService.updateStatus(
-      session.user.id,
-      shopSlug,
-      productSlug,
-      dto.isActive
     );
   }
 

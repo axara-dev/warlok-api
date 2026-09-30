@@ -1,19 +1,13 @@
-import {
-  IsNotEmpty,
-  IsString,
-  Matches,
-  MaxLength,
-  MinLength
-} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 export class CheckSlugDto {
   @ApiProperty({
     example: "",
-    description: "Shop slug to check for availability"
+    description:
+      "Unique shop slug. Only lowercase letters, numbers, and hyphens are allowed."
   })
   @IsString()
-  @IsNotEmpty()
   @MinLength(3)
   @MaxLength(50)
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {

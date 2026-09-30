@@ -1,9 +1,17 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
+import { and, count, eq } from "drizzle-orm";
 
 import { DATABASE } from "../database/database.constants";
 import type { Database } from "../database/db";
-import { shop } from "../database/schema";
+import { shop, user } from "../database/schema";
+
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
@@ -12,126 +20,241 @@ import { UpdateShopDto } from "./dto/update-shop.dto";
 export class ShopsService {
   constructor(
     @Inject(DATABASE)
-    private readonly db: Database
+    private readonly db: Database,
+    private readonly subscriptionsService: SubscriptionsService
   ) {}
 
   async isSlugAvailable(slug: string) {
-    const [result] = await this.db
-      .select({ id: shop.id })
+    const [existingShop] = await this.db
+      .select({
+        id: shop.id
+      })
       .from(shop)
       .where(eq(shop.slug, slug))
       .limit(1);
 
     return {
-      available: !result
+      available: !existingShop
     };
   }
 
   async create(userId: string, dto: CreateShopDto) {
-    const [result] = await this.db
-      .insert(shop)
-      .values({
-        id: crypto.randomUUID(),
-        userId,
-        name: dto.name,
-        slug: dto.slug,
-        description: dto.description,
-        logo: dto.logo,
-        banner: dto.banner
-      })
-      .returning();
+    return this.db.transaction(async tx => {
+      const [lockedUser] = await tx
+        .select({
+          id: user.id
+        })
+        .from(user)
+        .where(eq(user.id, userId))
+        .for("update")
+        .limit(1);
 
-    return result;
+      if (!lockedUser) {
+        throw new NotFoundException("User not found");
+      }
+
+      const limits = await this.subscriptionsService.getLimits(userId, tx);
+
+      const [{ value: shopCount }] = await tx
+        .select({
+          value: count()
+        })
+        .from(shop)
+        .where(eq(shop.userId, userId));
+
+      if (Number(shopCount) >= limits.shops) {
+        throw new ForbiddenException(
+          "Shop limit reached for your subscription plan"
+        );
+      }
+
+      const [existingShop] = await tx
+        .select({
+          id: shop.id
+        })
+        .from(shop)
+        .where(eq(shop.slug, dto.slug))
+        .limit(1);
+
+      if (existingShop) {
+        throw new ConflictException("Shop slug already exists");
+      }
+
+      const [createdShop] = await tx
+        .insert(shop)
+        .values({
+          id: crypto.randomUUID(),
+          userId,
+          name: dto.name,
+          slug: dto.slug,
+          description: dto.description,
+          categoryId: dto.categoryId,
+          logo: dto.logo,
+          banner: dto.banner,
+          address: dto.address,
+          latitude: dto.latitude?.toString(),
+          longitude: dto.longitude?.toString(),
+          isActive: dto.isActive
+        })
+        .returning();
+
+      return createdShop;
+    });
   }
 
   async findAll() {
-    return this.db.select().from(shop).where(eq(shop.isActive, true));
+    return this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId,
+        name: shop.name,
+        slug: shop.slug,
+        description: shop.description,
+        categoryId: shop.categoryId,
+        logo: shop.logo,
+        banner: shop.banner,
+        address: shop.address,
+        latitude: shop.latitude,
+        longitude: shop.longitude,
+        isActive: shop.isActive,
+        createdAt: shop.createdAt,
+        updatedAt: shop.updatedAt
+      })
+      .from(shop)
+      .where(eq(shop.isActive, true));
   }
 
   async findMine(userId: string) {
-    return this.db.select().from(shop).where(eq(shop.userId, userId));
+    return this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId,
+        name: shop.name,
+        slug: shop.slug,
+        description: shop.description,
+        categoryId: shop.categoryId,
+        logo: shop.logo,
+        banner: shop.banner,
+        address: shop.address,
+        latitude: shop.latitude,
+        longitude: shop.longitude,
+        isActive: shop.isActive,
+        createdAt: shop.createdAt,
+        updatedAt: shop.updatedAt
+      })
+      .from(shop)
+      .where(eq(shop.userId, userId));
   }
 
-  async findOne(id: string) {
-    const [result] = await this.db
-      .select()
+  async findMineBySlug(userId: string, slug: string) {
+    const [foundShop] = await this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId,
+        name: shop.name,
+        slug: shop.slug,
+        description: shop.description,
+        categoryId: shop.categoryId,
+        logo: shop.logo,
+        banner: shop.banner,
+        address: shop.address,
+        latitude: shop.latitude,
+        longitude: shop.longitude,
+        isActive: shop.isActive,
+        createdAt: shop.createdAt,
+        updatedAt: shop.updatedAt
+      })
       .from(shop)
-      .where(eq(shop.id, id))
+      .where(and(eq(shop.userId, userId), eq(shop.slug, slug)))
       .limit(1);
 
-    if (!result) {
+    if (!foundShop) {
       throw new NotFoundException("Shop not found");
     }
 
-    return result;
+    return foundShop;
   }
 
   async findBySlug(slug: string) {
-    const [result] = await this.db
-      .select()
+    const [foundShop] = await this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId,
+        name: shop.name,
+        slug: shop.slug,
+        description: shop.description,
+        categoryId: shop.categoryId,
+        logo: shop.logo,
+        banner: shop.banner,
+        address: shop.address,
+        latitude: shop.latitude,
+        longitude: shop.longitude,
+        isActive: shop.isActive,
+        createdAt: shop.createdAt,
+        updatedAt: shop.updatedAt
+      })
       .from(shop)
       .where(and(eq(shop.slug, slug), eq(shop.isActive, true)))
       .limit(1);
 
-    if (!result) {
+    if (!foundShop) {
       throw new NotFoundException("Shop not found");
     }
 
-    return result;
+    return foundShop;
   }
 
-  async update(userId: string, id: string, dto: UpdateShopDto) {
-    const [result] = await this.db
+  async update(userId: string, slug: string, dto: UpdateShopDto) {
+    const [updatedShop] = await this.db
       .update(shop)
-      .set(dto)
-      .where(and(eq(shop.id, id), eq(shop.userId, userId)))
+      .set({
+        name: dto.name,
+        slug: dto.slug,
+        description: dto.description,
+        categoryId: dto.categoryId,
+        logo: dto.logo,
+        banner: dto.banner,
+        address: dto.address,
+        latitude: dto.latitude?.toString(),
+        longitude: dto.longitude?.toString(),
+        isActive: dto.isActive
+      })
+      .where(and(eq(shop.slug, slug), eq(shop.userId, userId)))
       .returning();
 
-    if (!result) {
+    if (!updatedShop) {
       throw new NotFoundException("Shop not found");
     }
 
-    return result;
+    return updatedShop;
   }
 
-  async updateStatus(userId: string, id: string, isActive: boolean) {
-    const [result] = await this.db
+  async transfer(userId: string, slug: string, newOwnerId: string) {
+    const [updatedShop] = await this.db
       .update(shop)
-      .set({ isActive })
-      .where(and(eq(shop.id, id), eq(shop.userId, userId)))
+      .set({
+        userId: newOwnerId
+      })
+      .where(and(eq(shop.slug, slug), eq(shop.userId, userId)))
       .returning();
 
-    if (!result) {
+    if (!updatedShop) {
       throw new NotFoundException("Shop not found");
     }
 
-    return result;
+    return updatedShop;
   }
 
-  async transfer(userId: string, id: string, newOwnerId: string) {
-    const [result] = await this.db
-      .update(shop)
-      .set({ userId: newOwnerId })
-      .where(and(eq(shop.id, id), eq(shop.userId, userId)))
-      .returning();
-
-    if (!result) {
-      throw new NotFoundException("Shop not found");
-    }
-
-    return result;
-  }
-
-  async remove(userId: string, id: string) {
-    const [result] = await this.db
+  async remove(userId: string, slug: string) {
+    const [deletedShop] = await this.db
       .delete(shop)
-      .where(and(eq(shop.id, id), eq(shop.userId, userId)))
+      .where(and(eq(shop.slug, slug), eq(shop.userId, userId)))
       .returning();
 
-    if (!result) {
+    if (!deletedShop) {
       throw new NotFoundException("Shop not found");
     }
 
-    return result;
+    return deletedShop;
   }
 }

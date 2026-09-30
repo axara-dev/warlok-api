@@ -1,11 +1,15 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+  IsBoolean,
   IsOptional,
   IsString,
+  IsNumber,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength
 } from "class-validator";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateShopDto {
   @ApiProperty({
@@ -39,6 +43,13 @@ export class CreateShopDto {
   @MaxLength(500)
   description?: string;
 
+  @ApiProperty({
+    example: "",
+    description: "Shop category ID"
+  })
+  @IsString()
+  categoryId: string;
+
   @ApiPropertyOptional({
     example: "",
     description: "Optional shop logo URL"
@@ -56,4 +67,43 @@ export class CreateShopDto {
   @IsString()
   @MaxLength(2048)
   banner?: string;
+
+  @ApiPropertyOptional({
+    example: "",
+    description: "Optional shop address. It's highly recommended to equip."
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  address?: string;
+
+  @ApiPropertyOptional({
+    example: 0,
+    description:
+      "Optional shop latitude coordinate. Highly recommended to provide."
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @ApiPropertyOptional({
+    example: 0,
+    description:
+      "Optional shop longitude coordinate. Highly recommended to provide."
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: "Whether the shop is active"
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

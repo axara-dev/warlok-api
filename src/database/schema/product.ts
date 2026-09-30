@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { shop } from "./shop";
+import { productCategory } from "./product-category";
 
 export const product = pgTable(
   "product",
@@ -20,6 +21,9 @@ export const product = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     description: text("description"),
+    categoryId: text("category_id").references(() => productCategory.id, {
+      onDelete: "set null"
+    }),
     price: integer("price").notNull(),
     stock: integer("stock").default(0).notNull(),
     image: text("image"),
