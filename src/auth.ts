@@ -1,13 +1,18 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP, openAPI, admin, anonymous } from "better-auth/plugins";
-
-import { db } from "./database/db";
-import * as authSchema from "./database/schema/auth";
-
+import { admin, anonymous, emailOTP, openAPI } from "better-auth/plugins";
 import { Resend } from "resend";
 
 import SignInEmailOTP from "../emails/sign-in-email-otp";
+
+import { db } from "./database/db";
+import * as authSchema from "./database/schema/auth";
+import {
+  canReceiveOTP,
+  isWhitelistEnabled,
+  whitelistDatabaseHooks,
+  whitelistOnlyError
+} from "./whitelist/whitelist";
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
@@ -22,6 +27,10 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp, type }) {
         if (type !== "sign-in") {
           return;
+        }
+
+        if (!(await canReceiveOTP(email))) {
+          throw whitelistOnlyError();
         }
 
         await resend.emails.send({
@@ -51,5 +60,7 @@ export const auth = betterAuth({
     }
   },
 
-  trustedOrigins: [process.env.FRONTEND_URL as string]
+  trustedOrigins: [process.env.FRONTEND_URL as string],
+
+  databaseHooks: isWhitelistEnabled ? whitelistDatabaseHooks : undefined
 });

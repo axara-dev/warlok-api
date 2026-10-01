@@ -13,3 +13,4 @@ export * from "./order";
 export * from "./order-item";
 export * from "./review";
 export * from "./relations";
+export * from "./whitelist";

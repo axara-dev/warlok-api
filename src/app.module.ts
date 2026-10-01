@@ -18,7 +18,9 @@ import { ShopFulfillmentMethodsModule } from "./shop-fulfillment-methods/shop-fu
 import { ShopCategoriesModule } from "./shop-categories/shop-categories.module";
 import { ProductCategoriesModule } from "./product-categories/product-categories.module";
 import { PaymentsModule } from "./payments/payments.module";
-import { LinksModule } from './links/links.module';
+import { LinksModule } from "./links/links.module";
+import { isWhitelistEnabled } from "./whitelist/whitelist";
+import { WhitelistModule } from "./whitelist/whitelist.module";
 
 @Module({
   imports: [
@@ -42,7 +44,8 @@ import { LinksModule } from './links/links.module';
     ShopCategoriesModule,
     ProductCategoriesModule,
     PaymentsModule,
-    LinksModule
+    LinksModule,
+    ...(isWhitelistEnabled ? [WhitelistModule] : [])
   ],
   controllers: [UsersController],
   providers: []

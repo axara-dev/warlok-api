@@ -34,5 +34,17 @@ export function validateEnv(config: Record<string, unknown>) {
     );
   }
 
+  const whitelistMode = config.WHITELIST_MODE;
+
+  if (
+    whitelistMode !== undefined &&
+    whitelistMode !== "true" &&
+    whitelistMode !== "false"
+  ) {
+    throw new InternalServerErrorException(
+      "WHITELIST_MODE must be true or false"
+    );
+  }
+
   return config;
 }
