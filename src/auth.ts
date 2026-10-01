@@ -1,14 +1,13 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { openAPI, admin, anonymous } from "better-auth/plugins";
+import { emailOTP, openAPI, admin, anonymous } from "better-auth/plugins";
 
 import { db } from "./database/db";
 import * as authSchema from "./database/schema/auth";
 
 import { Resend } from "resend";
 
-import ResetPasswordEmail from "../emails/reset-password-email";
-import VerificationEmail from "../emails/verification-email";
+import SignInEmailOTP from "../emails/sign-in-email-otp";
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
@@ -18,48 +17,31 @@ export const auth = betterAuth({
     schema: authSchema
   }),
 
-  emailAndPassword: {
-    enabled: true,
-    autoSignIn: false,
-    requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
-      await resend.emails.send({
-        from: "onboarding@resend.dev",
-        to: user.email,
-        subject: "Reset your password",
-        react: ResetPasswordEmail({ url })
-      });
-    }
-  },
+  plugins: [
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        if (type !== "sign-in") {
+          return;
+        }
 
-  emailVerification: {
-    sendOnSignUp: true,
-    sendOnSignIn: false,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      await resend.emails.send({
-        from: "onboarding@resend.dev",
-        to: user.email,
-        subject: "Verify your email address",
-        react: VerificationEmail({ url })
-      });
-    }
-  },
+        await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to: email,
+          subject: "Your Warlok sign-in code",
+          react: SignInEmailOTP({ otp })
+        });
+      }
+    }),
+
+    admin(),
+    anonymous(),
+    openAPI({ disableDefaultReference: true })
+  ],
 
   rateLimit: {
     enabled: true,
     window: 60,
-    max: 100,
-    customRules: {
-      "/send-verification-email": {
-        window: 60,
-        max: 1
-      },
-      "/request-password-reset": {
-        window: 60,
-        max: 1
-      }
-    }
+    max: 100
   },
 
   socialProviders: {
@@ -69,7 +51,5 @@ export const auth = betterAuth({
     }
   },
 
-  trustedOrigins: [process.env.FRONTEND_URL as string],
-
-  plugins: [admin(), anonymous(), openAPI({ disableDefaultReference: true })]
+  trustedOrigins: [process.env.FRONTEND_URL as string]
 });

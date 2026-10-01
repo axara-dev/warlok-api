@@ -24,7 +24,7 @@
     "db:studio": "drizzle-kit studio",
     "db:drop": "tsx ./scripts/drop.ts",
     "db:reset": "tsx ./scripts/drop.ts && drizzle-kit push",
-    "auth:schema": "pnpm dlx auth@latest generate --output ./src/db/schema/auth.ts --config ./src/auth.ts",
+    "auth:schema": "pnpm dlx auth@latest generate --output ./src/database/schema/auth.ts --config ./src/auth.ts",
     "email:dev": "email dev"
   },
   "dependencies": {

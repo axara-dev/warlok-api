@@ -6,6 +6,7 @@ import { payment } from "./payment";
 import { shop } from "./shop";
 import { shopCategory } from "./shop-category";
 import { shopPaymentMethod } from "./shop-payment-method";
+import { shopFulfillmentMethod } from "./shop-fulfillment-method";
 import { product } from "./product";
 import { productCategory } from "./product-category";
 import { schedule } from "./schedule";
@@ -68,6 +69,7 @@ export const shopRelations = relations(shop, ({ one, many }) => ({
   schedules: many(schedule),
   links: many(link),
   paymentMethods: many(shopPaymentMethod),
+  fulfillmentMethods: many(shopFulfillmentMethod),
   productCategories: many(productCategory),
   products: many(product),
   orders: many(order),
@@ -116,6 +118,16 @@ export const shopPaymentMethodRelations = relations(
   ({ one }) => ({
     shop: one(shop, {
       fields: [shopPaymentMethod.shopId],
+      references: [shop.id]
+    })
+  })
+);
+
+export const shopFulfillmentMethodRelations = relations(
+  shopFulfillmentMethod,
+  ({ one }) => ({
+    shop: one(shop, {
+      fields: [shopFulfillmentMethod.shopId],
       references: [shop.id]
     })
   })
