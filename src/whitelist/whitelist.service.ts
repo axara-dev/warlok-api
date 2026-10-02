@@ -67,7 +67,7 @@ export class WhitelistService {
         set: { invitedAt: now }
       });
 
-    const signInUrl = `${process.env.FRONTEND_URL}/signin` as string;
+    const authUrl = `${process.env.FRONTEND_URL}/auth` as string;
 
     const results = await Promise.allSettled(
       emails.map(email =>
@@ -75,7 +75,7 @@ export class WhitelistService {
           from: "onboarding@resend.dev",
           to: email,
           subject: "You're invited to Warlok",
-          react: WhitelistInviteEmail({ signInUrl })
+          react: WhitelistInviteEmail({ authUrl })
         })
       )
     );

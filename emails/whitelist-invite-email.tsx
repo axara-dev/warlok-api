@@ -12,7 +12,7 @@ import {
 import * as React from "react";
 
 interface WhitelistInviteEmailProps {
-  signInUrl: string;
+  authUrl: string;
 }
 
 const colors = {
@@ -39,7 +39,7 @@ const darkModeCss = `
 `;
 
 export default function WhitelistInviteEmail({
-  signInUrl
+  authUrl
 }: WhitelistInviteEmailProps) {
   return (
     <Html lang="en">
@@ -66,7 +66,7 @@ export default function WhitelistInviteEmail({
             </Text>
 
             <Section style={buttonWrapper}>
-              <Button className="email-button" href={signInUrl} style={button}>
+              <Button className="email-button" href={authUrl} style={button}>
                 Get started
               </Button>
             </Section>
@@ -95,7 +95,7 @@ export default function WhitelistInviteEmail({
 }
 
 WhitelistInviteEmail.PreviewProps = {
-  signInUrl: "http://example.com"
+  authUrl: "http://example.com"
 } satisfies WhitelistInviteEmailProps;
 
 const body: React.CSSProperties = {

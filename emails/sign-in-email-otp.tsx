@@ -98,7 +98,7 @@ export default function SignInEmailOTP({
 }
 
 SignInEmailOTP.PreviewProps = {
-  otp: "482916",
+  otp: "061004",
   expiresInMinutes: 5
 } satisfies SignInEmailOTPProps;
 
