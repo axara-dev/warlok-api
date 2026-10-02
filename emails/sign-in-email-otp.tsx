@@ -42,7 +42,7 @@ const darkModeCss = `
 
 export default function SignInEmailOTP({
   otp,
-  expiresInMinutes = 10
+  expiresInMinutes = 5
 }: SignInEmailOTPProps) {
   return (
     <Html lang="en">
@@ -99,7 +99,7 @@ export default function SignInEmailOTP({
 
 SignInEmailOTP.PreviewProps = {
   otp: "482916",
-  expiresInMinutes: 10
+  expiresInMinutes: 5
 } satisfies SignInEmailOTPProps;
 
 const body: React.CSSProperties = {

@@ -8,13 +8,13 @@ import SignInEmailOTP from "../emails/sign-in-email-otp";
 import { db } from "./database/db";
 import * as authSchema from "./database/schema/auth";
 import {
-  canReceiveOTP,
   isWhitelistEnabled,
-  whitelistDatabaseHooks,
-  whitelistOnlyError
+  whitelistAuthOptions
 } from "./whitelist/whitelist";
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
+
+const OTP_EXPIRES_IN_SECONDS = 300;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -24,20 +24,23 @@ export const auth = betterAuth({
 
   plugins: [
     emailOTP({
+      otpLength: 6,
+      expiresIn: OTP_EXPIRES_IN_SECONDS,
+      allowedAttempts: 3,
+
       async sendVerificationOTP({ email, otp, type }) {
         if (type !== "sign-in") {
           return;
-        }
-
-        if (!(await canReceiveOTP(email))) {
-          throw whitelistOnlyError();
         }
 
         await resend.emails.send({
           from: "onboarding@resend.dev",
           to: email,
           subject: "Your Warlok sign-in code",
-          react: SignInEmailOTP({ otp })
+          react: SignInEmailOTP({
+            otp,
+            expiresInMinutes: OTP_EXPIRES_IN_SECONDS / 60
+          })
         });
       }
     }),
@@ -50,7 +53,11 @@ export const auth = betterAuth({
   rateLimit: {
     enabled: true,
     window: 60,
-    max: 100
+    max: 100,
+    customRules: {
+      "/email-otp/send-verification-otp": { window: 60, max: 3 },
+      "/sign-in/email-otp": { window: 60, max: 10 }
+    }
   },
 
   socialProviders: {
@@ -62,5 +69,5 @@ export const auth = betterAuth({
 
   trustedOrigins: [process.env.FRONTEND_URL as string],
 
-  databaseHooks: isWhitelistEnabled ? whitelistDatabaseHooks : undefined
+  ...(isWhitelistEnabled ? whitelistAuthOptions : {})
 });
