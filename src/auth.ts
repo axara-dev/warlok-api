@@ -5,8 +5,8 @@ import { Resend } from "resend";
 
 import SignInEmailOTP from "../emails/sign-in-email-otp";
 
-import { db } from "./database/db";
-import * as authSchema from "./database/schema/auth";
+import { db } from "./db";
+import * as schema from "./db/schema";
 import {
   isWhitelistEnabled,
   whitelistAuthOptions
@@ -19,7 +19,7 @@ const OTP_EXPIRES_IN_SECONDS = 300;
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: authSchema
+    schema
   }),
 
   plugins: [

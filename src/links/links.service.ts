@@ -1,9 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { link, shop, user } from "../database/schema";
+import { link, shop, user } from "../db/schema";
 
 import { CreateLinkDto } from "./dto/create-link.dto";
 import { ReorderLinksDto } from "./dto/reorder-links.dto";
@@ -11,10 +11,7 @@ import { UpdateLinkDto } from "./dto/update-link.dto";
 
 @Injectable()
 export class LinksService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async create(userId: string, shopSlug: string, dto: CreateLinkDto) {
     return this.db.transaction(async tx => {

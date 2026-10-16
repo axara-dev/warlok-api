@@ -5,40 +5,33 @@ import {
   MemoryHealthIndicator
 } from "@nestjs/terminus";
 import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
-import { sql } from "drizzle-orm";
+import { getHeapStatistics } from "node:v8";
+import { DrizzleHealthIndicator } from "./drizzle.health";
 
-import { db } from "../database/db";
+const MEMORY_HEAP_LIMIT = getHeapStatistics().heap_size_limit * 0.8;
 
 @Controller("health")
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
+    private readonly db: DrizzleHealthIndicator,
     private readonly memory: MemoryHealthIndicator
   ) {}
 
-  @Get()
-  @AllowAnonymous()
+  @Get("liveness")
   @HealthCheck()
-  check() {
-    return this.health.check([
-      async () => {
-        try {
-          await db.execute(sql`SELECT 1`);
+  @AllowAnonymous()
+  liveness() {
+    return this.health.check([]);
+  }
 
-          return {
-            database: {
-              status: "up"
-            }
-          };
-        } catch {
-          return {
-            database: {
-              status: "down"
-            }
-          };
-        }
-      },
-      () => this.memory.checkHeap("memory_heap", 500 * 1024 * 1024)
+  @Get("readiness")
+  @HealthCheck()
+  @AllowAnonymous()
+  readiness() {
+    return this.health.check([
+      () => this.db.isHealthy("database"),
+      () => this.memory.checkHeap("memory_heap", MEMORY_HEAP_LIMIT)
     ]);
   }
 }

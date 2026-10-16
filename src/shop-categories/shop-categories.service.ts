@@ -1,24 +1,20 @@
 import {
   ConflictException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { eq } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { shopCategory } from "../database/schema";
+import { shopCategory } from "../db/schema";
 
 import { CreateShopCategoryDto } from "./dto/create-shop-category.dto";
 import { UpdateShopCategoryDto } from "./dto/update-shop-category.dto";
 
 @Injectable()
 export class ShopCategoriesService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async findAll() {
     return this.db

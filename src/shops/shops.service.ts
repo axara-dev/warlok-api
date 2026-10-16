@@ -1,15 +1,14 @@
 import {
   ConflictException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { and, count, eq } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { shop, user } from "../database/schema";
+import { shop, user } from "../db/schema";
 
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 
@@ -19,8 +18,7 @@ import { UpdateShopDto } from "./dto/update-shop.dto";
 @Injectable()
 export class ShopsService {
   constructor(
-    @Inject(DATABASE)
-    private readonly db: Database,
+    @InjectDrizzle() private readonly db: PostgresJsDatabase,
     private readonly subscriptionsService: SubscriptionsService
   ) {}
 

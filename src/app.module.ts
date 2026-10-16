@@ -2,9 +2,10 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthModule } from "@thallesp/nestjs-better-auth";
+import { DrizzleModule } from "@nestjs/drizzle";
+import { db } from "./db";
 import { auth } from "./auth";
 import { validateEnv } from "./config/env.validation";
-import { DatabaseModule } from "./database/database.module";
 import { UsersController } from "./users/users.controller";
 import { ShopsModule } from "./shops/shops.module";
 import { HealthModule } from "./health/health.module";
@@ -30,8 +31,8 @@ import { WhitelistModule } from "./whitelist/whitelist.module";
       validate: validateEnv
     }),
     ScheduleModule.forRoot(),
+    DrizzleModule.forRoot({ db, autoCloseConnection: false }),
     AuthModule.forRoot({ auth }),
-    DatabaseModule,
     ShopsModule,
     HealthModule,
     ProductsModule,

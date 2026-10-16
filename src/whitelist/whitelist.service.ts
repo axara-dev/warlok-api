@@ -1,10 +1,10 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { asc, eq } from "drizzle-orm";
 import { Resend } from "resend";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { whitelist } from "../database/schema";
+import { whitelist } from "../db/schema";
 
 import { CreateWhitelistDto } from "./dto/create-whitelist.dto";
 import { InviteWhitelistDto } from "./dto/invite-whitelist.dto";
@@ -15,10 +15,7 @@ const resend = new Resend(process.env.RESEND_API_KEY as string);
 
 @Injectable()
 export class WhitelistService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async findAll() {
     return this.db.select().from(whitelist).orderBy(asc(whitelist.createdAt));

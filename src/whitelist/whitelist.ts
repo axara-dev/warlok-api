@@ -1,8 +1,8 @@
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { and, eq, isNotNull } from "drizzle-orm";
 
-import { db } from "../database/db";
-import { user, whitelist } from "../database/schema";
+import { db } from "../db";
+import { user, whitelist } from "../db/schema";
 
 export const isWhitelistEnabled = process.env.WHITELIST_MODE === "true";
 

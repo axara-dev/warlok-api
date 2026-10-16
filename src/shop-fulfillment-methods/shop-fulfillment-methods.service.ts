@@ -1,14 +1,13 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { shop, shopFulfillmentMethod } from "../database/schema";
+import { shop, shopFulfillmentMethod } from "../db/schema";
 
 import { UpsertFulfillmentMethodDto } from "./dto/upsert-fulfillment-method.dto";
 
@@ -21,10 +20,7 @@ type FulfillmentMethodType = "delivery" | "pickup";
 
 @Injectable()
 export class ShopFulfillmentMethodsService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   private validateDetails(type: FulfillmentMethodType, details: unknown) {
     let result;

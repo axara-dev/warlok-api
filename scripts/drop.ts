@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { db } from "../src/database/db";
+import { db } from "../src/db";
 
 async function main() {
   console.log("Dropping public schema...");

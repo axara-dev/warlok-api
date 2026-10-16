@@ -1,9 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq, lte } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { subscription, user } from "../database/schema";
+import { subscription, user } from "../db/schema";
 
 import {
   PREMIUM_DURATION_DAYS,
@@ -12,14 +12,11 @@ import {
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async getSubscription(
     userId: string,
-    database: Pick<Database, "select"> = this.db
+    database: Pick<PostgresJsDatabase, "select"> = this.db
   ) {
     const [result] = await database
       .select()
@@ -32,7 +29,7 @@ export class SubscriptionsService {
 
   async getActiveSubscription(
     userId: string,
-    database: Pick<Database, "select"> = this.db
+    database: Pick<PostgresJsDatabase, "select"> = this.db
   ) {
     const [result] = await database
       .select()
@@ -47,7 +44,7 @@ export class SubscriptionsService {
 
   async getEffectivePlan(
     userId: string,
-    database: Pick<Database, "select"> = this.db
+    database: Pick<PostgresJsDatabase, "select"> = this.db
   ) {
     const current = await this.getSubscription(userId, database);
 
@@ -68,7 +65,7 @@ export class SubscriptionsService {
 
   async getLimits(
     userId: string,
-    database: Pick<Database, "select"> = this.db
+    database: Pick<PostgresJsDatabase, "select"> = this.db
   ) {
     const plan = await this.getEffectivePlan(userId, database);
 
@@ -77,7 +74,7 @@ export class SubscriptionsService {
 
   async activatePremium(
     userId: string,
-    database: Pick<Database, "select" | "insert" | "update"> = this.db
+    database: Pick<PostgresJsDatabase, "select" | "insert" | "update"> = this.db
   ) {
     const now = new Date();
 

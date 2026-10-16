@@ -1,25 +1,21 @@
 import {
   ConflictException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { and, eq, sql } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { order, review, shop } from "../database/schema";
+import { order, review, shop } from "../db/schema";
 
 import { CreateReviewDto } from "./dto/create-review.dto";
 import { UpdateReviewDto } from "./dto/update-review.dto";
 
 @Injectable()
 export class ReviewsService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async create(userId: string, orderId: string, dto: CreateReviewDto) {
     const [foundOrder] = await this.db

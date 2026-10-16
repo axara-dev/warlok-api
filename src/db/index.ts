@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -17,5 +18,3 @@ export const db = drizzle(client, {
   schema,
   casing: "snake_case"
 });
-
-export type Database = typeof db;

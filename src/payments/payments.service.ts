@@ -1,17 +1,16 @@
 import {
   ConflictException,
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { eq } from "drizzle-orm";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { payment, user } from "../database/schema";
+import { payment, user } from "../db/schema";
 
 import {
   PREMIUM_PRICE,
@@ -37,8 +36,7 @@ export type MidtransNotification = {
 @Injectable()
 export class PaymentsService {
   constructor(
-    @Inject(DATABASE)
-    private readonly db: Database,
+    @InjectDrizzle() private readonly db: PostgresJsDatabase,
 
     private readonly configService: ConfigService,
 

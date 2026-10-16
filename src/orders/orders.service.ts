@@ -2,14 +2,13 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
 import {
   order,
   orderItem,
@@ -17,7 +16,7 @@ import {
   shop,
   shopFulfillmentMethod,
   shopPaymentMethod
-} from "../database/schema";
+} from "../db/schema";
 
 import {
   CreateOrderDto,
@@ -29,7 +28,9 @@ import {
   UpdateOrderStatusDto
 } from "./dto/update-order-status.dto";
 
-type DbTransaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+type DbTransaction = Parameters<
+  Parameters<PostgresJsDatabase["transaction"]>[0]
+>[0];
 
 type ProductRecord = {
   id: string;
@@ -53,10 +54,7 @@ type DeliveryDetails = {
 
 @Injectable()
 export class OrdersService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   async create(userId: string, shopSlug: string, dto: CreateOrderDto) {
     const items = this.normalizeItems(dto.items);
@@ -474,7 +472,7 @@ export class OrdersService {
   }
 
   private async findOwnerShop(
-    db: Database | DbTransaction,
+    db: PostgresJsDatabase | DbTransaction,
     userId: string,
     shopSlug: string
   ) {

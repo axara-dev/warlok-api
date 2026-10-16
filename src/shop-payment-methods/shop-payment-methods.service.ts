@@ -1,14 +1,13 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException
 } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
+import { InjectDrizzle } from "@nestjs/drizzle";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { DATABASE } from "../database/database.constants";
-import type { Database } from "../database/db";
-import { shop, shopPaymentMethod } from "../database/schema";
+import { shop, shopPaymentMethod } from "../db/schema";
 
 import {
   bankTransferDetailsSchema,
@@ -22,10 +21,7 @@ type PaymentMethodType = "cash" | "bank_transfer" | "qris";
 
 @Injectable()
 export class ShopPaymentMethodsService {
-  constructor(
-    @Inject(DATABASE)
-    private readonly db: Database
-  ) {}
+  constructor(@InjectDrizzle() private readonly db: PostgresJsDatabase) {}
 
   private validateDetails(type: PaymentMethodType, details: unknown) {
     let result;
