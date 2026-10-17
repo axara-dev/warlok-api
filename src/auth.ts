@@ -69,5 +69,18 @@ export const auth = betterAuth({
 
   trustedOrigins: [process.env.FRONTEND_URL as string],
 
+  disabledPaths: [
+    "/sign-up/email",
+    "/sign-in/email",
+    "/reset-password",
+    "/verify-password",
+    "/verify-email",
+    "/send-verification-email",
+    "/change-email",
+    "/change-password",
+    "/request-password-reset",
+    "/reset-password/{token}"
+  ],
+
   ...(isWhitelistEnabled ? whitelistAuthOptions : {})
 });
