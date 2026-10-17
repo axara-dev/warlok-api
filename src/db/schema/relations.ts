@@ -14,6 +14,8 @@ import { link } from "./link";
 import { order } from "./order";
 import { orderItem } from "./order-item";
 import { review } from "./review";
+import { key } from "./key";
+import { shopKey } from "./shop-key";
 
 export const userRelations = relations(user, ({ one, many }) => ({
   sessions: many(session),
@@ -22,7 +24,8 @@ export const userRelations = relations(user, ({ one, many }) => ({
   subscription: one(subscription),
   payments: many(payment),
   orders: many(order),
-  reviews: many(review)
+  reviews: many(review),
+  keys: many(key)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -73,7 +76,8 @@ export const shopRelations = relations(shop, ({ one, many }) => ({
   productCategories: many(productCategory),
   products: many(product),
   orders: many(order),
-  reviews: many(review)
+  reviews: many(review),
+  keys: many(shopKey)
 }));
 
 export const productCategoryRelations = relations(
@@ -169,5 +173,24 @@ export const reviewRelations = relations(review, ({ one }) => ({
   shop: one(shop, {
     fields: [review.shopId],
     references: [shop.id]
+  })
+}));
+
+export const keyRelations = relations(key, ({ one, many }) => ({
+  owner: one(user, {
+    fields: [key.userId],
+    references: [user.id]
+  }),
+  shops: many(shopKey)
+}));
+
+export const shopKeyRelations = relations(shopKey, ({ one }) => ({
+  shop: one(shop, {
+    fields: [shopKey.shopId],
+    references: [shop.id]
+  }),
+  key: one(key, {
+    fields: [shopKey.keyId],
+    references: [key.id]
   })
 }));

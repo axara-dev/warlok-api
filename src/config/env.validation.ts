@@ -9,7 +9,8 @@ export function validateEnv(config: Record<string, unknown>) {
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "FRONTEND_URL",
-    "MIDTRANS_SERVER_KEY"
+    "MIDTRANS_SERVER_KEY",
+    "ENCRYPTION_KEY"
   ];
 
   for (const key of required) {

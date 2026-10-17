@@ -22,6 +22,7 @@ import { PaymentsModule } from "./payments/payments.module";
 import { LinksModule } from "./links/links.module";
 import { isWhitelistEnabled } from "./whitelist/whitelist";
 import { WhitelistModule } from "./whitelist/whitelist.module";
+import { KeysModule } from './keys/keys.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { WhitelistModule } from "./whitelist/whitelist.module";
     ProductCategoriesModule,
     PaymentsModule,
     LinksModule,
-    ...(isWhitelistEnabled ? [WhitelistModule] : [])
+    ...(isWhitelistEnabled ? [WhitelistModule] : []),
+    KeysModule
   ],
   controllers: [UsersController],
   providers: []

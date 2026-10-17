@@ -14,3 +14,5 @@ export * from "./order-item";
 export * from "./review";
 export * from "./relations";
 export * from "./whitelist";
+export * from "./key";
+export * from "./shop-key";
