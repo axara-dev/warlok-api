@@ -7,7 +7,19 @@ import {
   Patch,
   Post
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse
+} from "@nestjs/swagger";
 import {
   AllowAnonymous,
   Session,
@@ -17,6 +29,13 @@ import {
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductsService } from "./products.service";
+
+import {
+  ERROR_SCHEMA,
+  ERROR_SCHEMA_REQUIRED,
+  ERROR_EXAMPLE,
+  ERROR_DESCRIPTIONS
+} from "../common/swagger/swagger.constants";
 
 @ApiTags("Products")
 @Controller("shops/:shop_slug/products")
@@ -30,7 +49,69 @@ export class ProductsController {
   })
   @ApiResponse({
     status: 200,
-    description: "List of active products in the shop."
+    description: "Success - List of active products in the shop.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          shopId: { type: "string" },
+          categoryId: { type: "string", nullable: true },
+          name: { type: "string" },
+          slug: { type: "string" },
+          description: { type: "string", nullable: true },
+          price: { type: "number" },
+          stock: { type: "number" },
+          image: { type: "string", nullable: true },
+          isActive: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        },
+        required: [
+          "id",
+          "shopId",
+          "name",
+          "slug",
+          "price",
+          "stock",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        shopId: "string",
+        categoryId: "string",
+        name: "string",
+        slug: "string",
+        description: "string",
+        price: 0,
+        stock: 0,
+        image: "string",
+        isActive: true,
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findAll(@Param("shop_slug") shopSlug: string) {
     return this.productsService.findAll(shopSlug);
@@ -43,11 +124,64 @@ export class ProductsController {
   })
   @ApiResponse({
     status: 200,
-    description: "Product matching the specified slug."
+    description: "Success - Product matching the specified slug.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        shopId: { type: "string" },
+        categoryId: { type: "string", nullable: true },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        price: { type: "number" },
+        stock: { type: "number" },
+        image: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "shopId",
+        "name",
+        "slug",
+        "price",
+        "stock",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      shopId: "string",
+      categoryId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      price: 0,
+      stock: 0,
+      image: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Product not found."
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findBySlug(
     @Param("shop_slug") shopSlug: string,
@@ -57,28 +191,90 @@ export class ProductsController {
   }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Create a product"
   })
   @ApiResponse({
     status: 201,
-    description: "Product created successfully."
+    description: "Success - Product created successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        shopId: { type: "string" },
+        categoryId: { type: "string", nullable: true },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        price: { type: "number" },
+        stock: { type: "number" },
+        image: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "shopId",
+        "name",
+        "slug",
+        "price",
+        "stock",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      shopId: "string",
+      categoryId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      price: 0,
+      stock: 0,
+      image: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 400,
-    description: "Invalid request data."
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 403,
-    description: "Product limit reached for subscription plan."
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Product slug already exists in this shop."
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   create(
     @Session() session: UserSession,
@@ -89,16 +285,85 @@ export class ProductsController {
   }
 
   @Patch(":product_slug")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Update a product"
   })
   @ApiResponse({
     status: 200,
-    description: "Product updated successfully."
+    description: "Success - Product updated successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        shopId: { type: "string" },
+        categoryId: { type: "string", nullable: true },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        price: { type: "number" },
+        stock: { type: "number" },
+        image: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "shopId",
+        "name",
+        "slug",
+        "price",
+        "stock",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      shopId: "string",
+      categoryId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      price: 0,
+      stock: 0,
+      image: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Product not found."
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   update(
     @Session() session: UserSession,
@@ -115,16 +380,75 @@ export class ProductsController {
   }
 
   @Delete(":product_slug")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Delete a product"
   })
   @ApiResponse({
     status: 200,
-    description: "Product deleted successfully."
+    description: "Success - Product deleted successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        shopId: { type: "string" },
+        categoryId: { type: "string", nullable: true },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        price: { type: "number" },
+        stock: { type: "number" },
+        image: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "shopId",
+        "name",
+        "slug",
+        "price",
+        "stock",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      shopId: "string",
+      categoryId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      price: 0,
+      stock: 0,
+      image: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Product not found."
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   remove(
     @Session() session: UserSession,

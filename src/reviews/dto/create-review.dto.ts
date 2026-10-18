@@ -21,7 +21,7 @@ export class CreateReviewDto {
   rating: number;
 
   @ApiPropertyOptional({
-    example: "Makanannya enak dan pelayanannya cepat.",
+    example: "",
     description: "Optional review comment"
   })
   @IsOptional()

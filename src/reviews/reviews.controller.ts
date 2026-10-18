@@ -7,13 +7,31 @@ import {
   Patch,
   Post
 } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse
+} from "@nestjs/swagger";
 import {
   AllowAnonymous,
   Session,
   type UserSession
 } from "@thallesp/nestjs-better-auth";
 
+import {
+  ERROR_DESCRIPTIONS,
+  ERROR_EXAMPLE,
+  ERROR_SCHEMA,
+  ERROR_SCHEMA_REQUIRED
+} from "../common/swagger/swagger.constants";
 import { CreateReviewDto } from "./dto/create-review.dto";
 import { UpdateReviewDto } from "./dto/update-review.dto";
 import { ReviewsService } from "./reviews.service";
@@ -30,24 +48,74 @@ export class ReviewsController {
   })
   @ApiParam({
     name: "order_id",
-    example: "dfb9593c-c968-4833-b822-46244d841272",
+    example: "string",
     description: "Order ID"
   })
   @ApiResponse({
     status: 201,
-    description: "Review created successfully"
+    description: "Success - Review created successfully",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        orderId: { type: "string" },
+        shopId: { type: "string" },
+        rating: { type: "number" },
+        comment: { type: "string", nullable: true },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "orderId",
+        "shopId",
+        "rating",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      orderId: "string",
+      shopId: "string",
+      rating: 0,
+      comment: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this order"
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Order not found"
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Order is not completed or has already been reviewed"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   create(
     @Session() session: UserSession,
@@ -64,51 +132,184 @@ export class ReviewsController {
   })
   @ApiParam({
     name: "shop_slug",
-    example: "liwetarsi",
+    example: "string",
     description: "Shop slug"
   })
   @ApiResponse({
     status: 200,
-    description: "Shop reviews retrieved successfully"
+    description: "Success - Shop reviews retrieved successfully",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          rating: { type: "number" },
+          comment: { type: "string", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        },
+        required: ["id", "rating", "createdAt", "updatedAt"]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        rating: 0,
+        comment: "string",
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
   })
-  @ApiResponse({
-    status: 404,
-    description: "Shop not found"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findByShop(@Param("shop_slug") shopSlug: string) {
     return this.reviewsService.findByShop(shopSlug);
   }
 
   @Get("reviews")
-  @AllowAnonymous()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "List my reviews"
   })
   @ApiResponse({
     status: 200,
-    description: "Reviews retrieved successfully"
+    description: "Success - Reviews retrieved successfully",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          orderId: { type: "string" },
+          shopId: { type: "string" },
+          rating: { type: "number" },
+          comment: { type: "string", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          shopName: { type: "string" },
+          shopSlug: { type: "string" }
+        },
+        required: [
+          "id",
+          "orderId",
+          "shopId",
+          "rating",
+          "createdAt",
+          "updatedAt",
+          "shopName",
+          "shopSlug"
+        ]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        orderId: "string",
+        shopId: "string",
+        rating: 0,
+        comment: "string",
+        createdAt: "string",
+        updatedAt: "string",
+        shopName: "string",
+        shopSlug: "string"
+      }
+    ]
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findMine(@Session() session: UserSession) {
     return this.reviewsService.findMine(session.user.id);
   }
 
   @Get("reviews/:review_id")
-  @AllowAnonymous()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Get my review by ID"
   })
   @ApiParam({
     name: "review_id",
-    example: "dfb9593c-c968-4833-b822-46244d841272",
+    example: "string",
     description: "Review ID"
   })
   @ApiResponse({
     status: 200,
-    description: "Review retrieved successfully"
+    description: "Success - Review retrieved successfully",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        orderId: { type: "string" },
+        shopId: { type: "string" },
+        rating: { type: "number" },
+        comment: { type: "string", nullable: true },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        shopName: { type: "string" },
+        shopSlug: { type: "string" }
+      },
+      required: [
+        "id",
+        "userId",
+        "orderId",
+        "shopId",
+        "rating",
+        "createdAt",
+        "updatedAt",
+        "shopName",
+        "shopSlug"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      orderId: "string",
+      shopId: "string",
+      rating: 0,
+      comment: "string",
+      createdAt: "string",
+      updatedAt: "string",
+      shopName: "string",
+      shopSlug: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Review not found"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findById(
     @Session() session: UserSession,
@@ -118,26 +319,75 @@ export class ReviewsController {
   }
 
   @Patch("reviews/:review_id")
-  @AllowAnonymous()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Update my review"
   })
   @ApiParam({
     name: "review_id",
-    example: "dfb9593c-c968-4833-b822-46244d841272",
+    example: "string",
     description: "Review ID"
   })
   @ApiResponse({
     status: 200,
-    description: "Review updated successfully"
+    description: "Success - Review updated successfully",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        orderId: { type: "string" },
+        shopId: { type: "string" },
+        rating: { type: "number" },
+        comment: { type: "string", nullable: true },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "orderId",
+        "shopId",
+        "rating",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      orderId: "string",
+      shopId: "string",
+      rating: 0,
+      comment: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Review not found"
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this review"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   update(
     @Session() session: UserSession,
@@ -148,26 +398,70 @@ export class ReviewsController {
   }
 
   @Delete("reviews/:review_id")
-  @AllowAnonymous()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Delete my review"
   })
   @ApiParam({
     name: "review_id",
-    example: "dfb9593c-c968-4833-b822-46244d841272",
+    example: "string",
     description: "Review ID"
   })
   @ApiResponse({
     status: 200,
-    description: "Review deleted successfully"
+    description: "Success - Review deleted successfully",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        orderId: { type: "string" },
+        shopId: { type: "string" },
+        rating: { type: "number" },
+        comment: { type: "string", nullable: true },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "orderId",
+        "shopId",
+        "rating",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      orderId: "string",
+      shopId: "string",
+      rating: 0,
+      comment: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Review not found"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this review"
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   remove(
     @Session() session: UserSession,

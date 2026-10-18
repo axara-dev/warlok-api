@@ -1,5 +1,18 @@
 import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
+  ApiTooManyRequestsResponse,
+  ApiInternalServerErrorResponse
+} from "@nestjs/swagger";
 import {
   AllowAnonymous,
   Session,
@@ -9,6 +22,12 @@ import {
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { OrdersService } from "./orders.service";
+import {
+  ERROR_SCHEMA,
+  ERROR_SCHEMA_REQUIRED,
+  ERROR_EXAMPLE,
+  ERROR_DESCRIPTIONS
+} from "../common/swagger/swagger.constants";
 
 @ApiTags("Orders")
 @Controller()
@@ -17,33 +36,139 @@ export class OrdersController {
 
   @Post("shops/:shop_slug/orders")
   @AllowAnonymous()
-  @ApiOperation({
-    summary: "Create an order"
-  })
-  @ApiParam({
-    name: "shop_slug",
-    example: "toko-abc",
-    description: "Shop slug"
-  })
+  @ApiOperation({ summary: "Create an order" })
+  @ApiParam({ name: "shop_slug", description: "Shop slug" })
   @ApiResponse({
     status: 201,
-    description: "Order created successfully"
+    description: "Success - Order created successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        shopId: { type: "string" },
+        customerName: { type: "string" },
+        customerEmail: { type: "string", nullable: true },
+        customerPhone: { type: "string" },
+        fulfillmentType: { type: "string" },
+        paymentMethod: { type: "string" },
+        paymentDetails: { nullable: true },
+        deliveryAddress: { type: "string", nullable: true },
+        deliveryLatitude: { type: "string", nullable: true },
+        deliveryLongitude: { type: "string", nullable: true },
+        note: { type: "string", nullable: true },
+        status: { type: "string" },
+        subtotal: { type: "number" },
+        deliveryFee: { type: "number" },
+        total: { type: "number" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              productId: { type: "string" },
+              productName: { type: "string" },
+              quantity: { type: "number" },
+              price: { type: "number" },
+              subtotal: { type: "number" }
+            },
+            required: [
+              "id",
+              "productId",
+              "productName",
+              "quantity",
+              "price",
+              "subtotal"
+            ]
+          }
+        }
+      },
+      required: [
+        "id",
+        "userId",
+        "shopId",
+        "customerName",
+        "customerPhone",
+        "fulfillmentType",
+        "paymentMethod",
+        "status",
+        "subtotal",
+        "deliveryFee",
+        "total",
+        "createdAt",
+        "updatedAt",
+        "items"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      shopId: "string",
+      customerName: "string",
+      customerEmail: null,
+      customerPhone: "string",
+      fulfillmentType: "string",
+      paymentMethod: "string",
+      paymentDetails: null,
+      deliveryAddress: null,
+      deliveryLatitude: null,
+      deliveryLongitude: null,
+      note: null,
+      status: "string",
+      subtotal: 0,
+      deliveryFee: 0,
+      total: 0,
+      createdAt: "string",
+      updatedAt: "string",
+      items: [
+        {
+          id: "string",
+          productId: "string",
+          productName: "string",
+          quantity: 0,
+          price: 0,
+          subtotal: 0
+        }
+      ]
+    }
   })
-  @ApiResponse({
-    status: 400,
-    description: "Invalid order data"
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 403,
-    description: "Shop is not active"
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Shop or product not found"
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Product is inactive or stock is insufficient"
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   create(
     @Session() session: UserSession,
@@ -55,12 +180,75 @@ export class OrdersController {
 
   @Get("orders")
   @AllowAnonymous()
-  @ApiOperation({
-    summary: "Get my orders"
-  })
+  @ApiOperation({ summary: "Get my orders" })
   @ApiResponse({
     status: 200,
-    description: "Orders retrieved successfully"
+    description: "Success - Orders retrieved successfully.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          shopId: { type: "string" },
+          customerName: { type: "string" },
+          customerEmail: { type: "string", nullable: true },
+          customerPhone: { type: "string" },
+          fulfillmentType: { type: "string" },
+          paymentMethod: { type: "string" },
+          deliveryAddress: { type: "string", nullable: true },
+          deliveryLatitude: { type: "string", nullable: true },
+          deliveryLongitude: { type: "string", nullable: true },
+          note: { type: "string", nullable: true },
+          status: { type: "string" },
+          subtotal: { type: "number" },
+          deliveryFee: { type: "number" },
+          total: { type: "number" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          shopName: { type: "string" },
+          shopSlug: { type: "string" }
+        }
+      }
+    },
+    example: [
+      {
+        id: "string",
+        shopId: "string",
+        customerName: "string",
+        customerEmail: null,
+        customerPhone: "string",
+        fulfillmentType: "string",
+        paymentMethod: "string",
+        deliveryAddress: null,
+        deliveryLatitude: null,
+        deliveryLongitude: null,
+        note: null,
+        status: "string",
+        subtotal: 0,
+        deliveryFee: 0,
+        total: 0,
+        createdAt: "string",
+        updatedAt: "string",
+        shopName: "string",
+        shopSlug: "string"
+      }
+    ]
+  })
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findMine(@Session() session: UserSession) {
     return this.ordersService.findMine(session.user.id);
@@ -68,21 +256,104 @@ export class OrdersController {
 
   @Get("orders/:order_id")
   @AllowAnonymous()
-  @ApiOperation({
-    summary: "Get my order by ID"
-  })
-  @ApiParam({
-    name: "order_id",
-    example: "clx123order",
-    description: "Order ID"
-  })
+  @ApiOperation({ summary: "Get my order by ID" })
+  @ApiParam({ name: "order_id", description: "Order ID" })
   @ApiResponse({
     status: 200,
-    description: "Order retrieved successfully"
+    description: "Success - Order retrieved successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        shopId: { type: "string" },
+        customerName: { type: "string" },
+        customerEmail: { type: "string", nullable: true },
+        customerPhone: { type: "string" },
+        fulfillmentType: { type: "string" },
+        paymentMethod: { type: "string" },
+        paymentDetails: { nullable: true },
+        deliveryAddress: { type: "string", nullable: true },
+        deliveryLatitude: { type: "string", nullable: true },
+        deliveryLongitude: { type: "string", nullable: true },
+        note: { type: "string", nullable: true },
+        status: { type: "string" },
+        subtotal: { type: "number" },
+        deliveryFee: { type: "number" },
+        total: { type: "number" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        shopName: { type: "string" },
+        shopSlug: { type: "string" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              productId: { type: "string" },
+              productName: { type: "string" },
+              quantity: { type: "number" },
+              price: { type: "number" },
+              subtotal: { type: "number" }
+            }
+          }
+        }
+      }
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      shopId: "string",
+      customerName: "string",
+      customerEmail: null,
+      customerPhone: "string",
+      fulfillmentType: "string",
+      paymentMethod: "string",
+      paymentDetails: null,
+      deliveryAddress: null,
+      deliveryLatitude: null,
+      deliveryLongitude: null,
+      note: null,
+      status: "string",
+      subtotal: 0,
+      deliveryFee: 0,
+      total: 0,
+      createdAt: "string",
+      updatedAt: "string",
+      shopName: "string",
+      shopSlug: "string",
+      items: [
+        {
+          id: "string",
+          productId: "string",
+          productName: "string",
+          quantity: 0,
+          price: 0,
+          subtotal: 0
+        }
+      ]
+    }
   })
-  @ApiResponse({
-    status: 404,
-    description: "Order not found"
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findById(
     @Session() session: UserSession,
@@ -92,21 +363,74 @@ export class OrdersController {
   }
 
   @Get("shops/:shop_slug/orders")
-  @ApiOperation({
-    summary: "Get shop orders"
-  })
-  @ApiParam({
-    name: "shop_slug",
-    example: "toko-abc",
-    description: "Shop slug"
-  })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get shop orders" })
+  @ApiParam({ name: "shop_slug", description: "Shop slug" })
   @ApiResponse({
     status: 200,
-    description: "Shop orders retrieved successfully"
+    description: "Success - Shop orders retrieved successfully.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          userId: { type: "string" },
+          customerName: { type: "string" },
+          customerEmail: { type: "string", nullable: true },
+          customerPhone: { type: "string" },
+          fulfillmentType: { type: "string" },
+          paymentMethod: { type: "string" },
+          deliveryAddress: { type: "string", nullable: true },
+          status: { type: "string" },
+          subtotal: { type: "number" },
+          deliveryFee: { type: "number" },
+          total: { type: "number" },
+          note: { type: "string", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        }
+      }
+    },
+    example: [
+      {
+        id: "string",
+        userId: "string",
+        customerName: "string",
+        customerEmail: null,
+        customerPhone: "string",
+        fulfillmentType: "string",
+        paymentMethod: "string",
+        deliveryAddress: null,
+        status: "string",
+        subtotal: 0,
+        deliveryFee: 0,
+        total: 0,
+        note: null,
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this shop"
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findByShop(
     @Session() session: UserSession,
@@ -116,30 +440,107 @@ export class OrdersController {
   }
 
   @Get("shops/:shop_slug/orders/:order_id")
-  @ApiOperation({
-    summary: "Get shop order by ID"
-  })
-  @ApiParam({
-    name: "shop_slug",
-    example: "toko-abc",
-    description: "Shop slug"
-  })
-  @ApiParam({
-    name: "order_id",
-    example: "clx123order",
-    description: "Order ID"
-  })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get shop order by ID" })
+  @ApiParam({ name: "shop_slug", description: "Shop slug" })
+  @ApiParam({ name: "order_id", description: "Order ID" })
   @ApiResponse({
     status: 200,
-    description: "Order retrieved successfully"
+    description: "Success - Order retrieved successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        shopId: { type: "string" },
+        customerName: { type: "string" },
+        customerEmail: { type: "string", nullable: true },
+        customerPhone: { type: "string" },
+        fulfillmentType: { type: "string" },
+        paymentMethod: { type: "string" },
+        paymentDetails: { nullable: true },
+        deliveryAddress: { type: "string", nullable: true },
+        deliveryLatitude: { type: "string", nullable: true },
+        deliveryLongitude: { type: "string", nullable: true },
+        note: { type: "string", nullable: true },
+        status: { type: "string" },
+        subtotal: { type: "number" },
+        deliveryFee: { type: "number" },
+        total: { type: "number" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              productId: { type: "string" },
+              productName: { type: "string" },
+              quantity: { type: "number" },
+              price: { type: "number" },
+              subtotal: { type: "number" }
+            }
+          }
+        }
+      }
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      shopId: "string",
+      customerName: "string",
+      customerEmail: null,
+      customerPhone: "string",
+      fulfillmentType: "string",
+      paymentMethod: "string",
+      paymentDetails: null,
+      deliveryAddress: null,
+      deliveryLatitude: null,
+      deliveryLongitude: null,
+      note: null,
+      status: "string",
+      subtotal: 0,
+      deliveryFee: 0,
+      total: 0,
+      createdAt: "string",
+      updatedAt: "string",
+      items: [
+        {
+          id: "string",
+          productId: "string",
+          productName: "string",
+          quantity: 0,
+          price: 0,
+          subtotal: 0
+        }
+      ]
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this shop"
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Order not found"
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findByShopId(
     @Session() session: UserSession,
@@ -150,34 +551,93 @@ export class OrdersController {
   }
 
   @Patch("shops/:shop_slug/orders/:order_id/status")
-  @ApiOperation({
-    summary: "Update order status"
-  })
-  @ApiParam({
-    name: "shop_slug",
-    example: "toko-abc",
-    description: "Shop slug"
-  })
-  @ApiParam({
-    name: "order_id",
-    example: "clx123order",
-    description: "Order ID"
-  })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update order status" })
+  @ApiParam({ name: "shop_slug", description: "Shop slug" })
+  @ApiParam({ name: "order_id", description: "Order ID" })
   @ApiResponse({
     status: 200,
-    description: "Order status updated successfully"
+    description: "Success - Order status updated successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        shopId: { type: "string" },
+        customerName: { type: "string" },
+        customerEmail: { type: "string", nullable: true },
+        customerPhone: { type: "string" },
+        fulfillmentType: { type: "string" },
+        paymentMethod: { type: "string" },
+        paymentDetails: { nullable: true },
+        deliveryAddress: { type: "string", nullable: true },
+        deliveryLatitude: { type: "string", nullable: true },
+        deliveryLongitude: { type: "string", nullable: true },
+        note: { type: "string", nullable: true },
+        status: { type: "string" },
+        subtotal: { type: "number" },
+        deliveryFee: { type: "number" },
+        total: { type: "number" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      }
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      shopId: "string",
+      customerName: "string",
+      customerEmail: null,
+      customerPhone: "string",
+      fulfillmentType: "string",
+      paymentMethod: "string",
+      paymentDetails: null,
+      deliveryAddress: null,
+      deliveryLatitude: null,
+      deliveryLongitude: null,
+      note: null,
+      status: "string",
+      subtotal: 0,
+      deliveryFee: 0,
+      total: 0,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "You do not have access to this shop"
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Order not found"
+  @ApiUnauthorizedResponse({
+    description: ERROR_DESCRIPTIONS.UNAUTHORIZED,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Invalid order status transition"
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   updateStatus(
     @Session() session: UserSession,

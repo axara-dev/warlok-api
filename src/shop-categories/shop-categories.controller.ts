@@ -7,9 +7,27 @@ import {
   Patch,
   Post
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse
+} from "@nestjs/swagger";
 import { AllowAnonymous, Roles } from "@thallesp/nestjs-better-auth";
 
+import {
+  ERROR_DESCRIPTIONS,
+  ERROR_EXAMPLE,
+  ERROR_SCHEMA,
+  ERROR_SCHEMA_REQUIRED
+} from "../common/swagger/swagger.constants";
 import { CreateShopCategoryDto } from "./dto/create-shop-category.dto";
 import { UpdateShopCategoryDto } from "./dto/update-shop-category.dto";
 import { ShopCategoriesService } from "./shop-categories.service";
@@ -26,7 +44,40 @@ export class ShopCategoriesController {
   })
   @ApiResponse({
     status: 200,
-    description: "List of shop categories."
+    description: "Success - List of shop categories.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          slug: { type: "string" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        },
+        required: ["id", "name", "slug", "createdAt", "updatedAt"]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        name: "string",
+        slug: "string",
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findAll() {
     return this.shopCategoriesService.findAll();
@@ -37,59 +88,171 @@ export class ShopCategoriesController {
   @ApiOperation({
     summary: "Get a shop category"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Shop category found."
+  @ApiParam({
+    name: "category_id",
+    example: "string",
+    description: "Shop category ID"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop category not found."
+    status: 200,
+    description: "Success - Shop category found.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: ["id", "name", "slug", "createdAt", "updatedAt"]
+    },
+    example: {
+      id: "string",
+      name: "string",
+      slug: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findOne(@Param("category_id") categoryId: string) {
     return this.shopCategoriesService.findOne(categoryId);
   }
 
   @Post()
+  @ApiBearerAuth()
   @Roles(["admin"])
   @ApiOperation({
     summary: "Create a shop category"
   })
   @ApiResponse({
     status: 201,
-    description: "Shop category created successfully."
+    description: "Success - Shop category created successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: ["id", "name", "slug", "createdAt", "updatedAt"]
+    },
+    example: {
+      id: "string",
+      name: "string",
+      slug: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "Admin access required."
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Shop category slug already exists."
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   create(@Body() dto: CreateShopCategoryDto) {
     return this.shopCategoriesService.create(dto);
   }
 
   @Patch(":category_id")
+  @ApiBearerAuth()
   @Roles(["admin"])
   @ApiOperation({
     summary: "Update a shop category"
   })
+  @ApiParam({
+    name: "category_id",
+    example: "string",
+    description: "Shop category ID"
+  })
   @ApiResponse({
     status: 200,
-    description: "Shop category updated successfully."
+    description: "Success - Shop category updated successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: ["id", "name", "slug", "createdAt", "updatedAt"]
+    },
+    example: {
+      id: "string",
+      name: "string",
+      slug: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "Admin access required."
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Shop category not found."
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Shop category slug already exists."
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   update(
     @Param("category_id") categoryId: string,
@@ -99,25 +262,62 @@ export class ShopCategoriesController {
   }
 
   @Delete(":category_id")
+  @ApiBearerAuth()
   @Roles(["admin"])
   @ApiOperation({
     summary: "Delete a shop category"
   })
+  @ApiParam({
+    name: "category_id",
+    example: "string",
+    description: "Shop category ID"
+  })
   @ApiResponse({
     status: 200,
-    description: "Shop category deleted successfully."
+    description: "Success - Shop category deleted successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: ["id", "name", "slug", "createdAt", "updatedAt"]
+    },
+    example: {
+      id: "string",
+      name: "string",
+      slug: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 403,
-    description: "Admin access required."
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 404,
-    description: "Shop category not found."
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Shop category is still being used by one or more shops."
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   remove(@Param("category_id") categoryId: string) {
     return this.shopCategoriesService.remove(categoryId);

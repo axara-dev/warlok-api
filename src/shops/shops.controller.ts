@@ -7,13 +7,31 @@ import {
   Patch,
   Post
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse
+} from "@nestjs/swagger";
 import {
   AllowAnonymous,
   Session,
   type UserSession
 } from "@thallesp/nestjs-better-auth";
 
+import {
+  ERROR_DESCRIPTIONS,
+  ERROR_EXAMPLE,
+  ERROR_SCHEMA,
+  ERROR_SCHEMA_REQUIRED
+} from "../common/swagger/swagger.constants";
 import { CheckSlugDto } from "./dto/check-slug.dto";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { TransferShopDto } from "./dto/transfer-shop.dto";
@@ -31,8 +49,33 @@ export class ShopsController {
     summary: "Check shop slug availability"
   })
   @ApiResponse({
-    status: 200,
-    description: "Returns whether the slug is available."
+    status: 201,
+    description: "Success - Returns whether the slug is available.",
+    schema: {
+      type: "object",
+      properties: {
+        available: { type: "boolean" }
+      },
+      required: ["available"]
+    },
+    example: {
+      available: true
+    }
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   isSlugAvailable(@Body() dto: CheckSlugDto) {
     return this.shopsService.isSlugAvailable(dto.slug);
@@ -45,35 +88,236 @@ export class ShopsController {
   })
   @ApiResponse({
     status: 200,
-    description: "List of active shops."
+    description: "Success - List of active shops.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          userId: { type: "string" },
+          name: { type: "string" },
+          slug: { type: "string" },
+          description: { type: "string", nullable: true },
+          categoryId: { type: "string" },
+          logo: { type: "string", nullable: true },
+          banner: { type: "string", nullable: true },
+          address: { type: "string", nullable: true },
+          latitude: { type: "string", nullable: true },
+          longitude: { type: "string", nullable: true },
+          isActive: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        },
+        required: [
+          "id",
+          "userId",
+          "name",
+          "slug",
+          "description",
+          "categoryId",
+          "logo",
+          "banner",
+          "address",
+          "latitude",
+          "longitude",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        userId: "string",
+        name: "string",
+        slug: "string",
+        description: "string",
+        categoryId: "string",
+        logo: "string",
+        banner: "string",
+        address: "string",
+        latitude: "string",
+        longitude: "string",
+        isActive: true,
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findAll() {
     return this.shopsService.findAll();
   }
 
   @Get("me")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "List current user's shops"
   })
   @ApiResponse({
     status: 200,
-    description: "List of shops owned by the current user."
+    description: "Success - List of shops owned by the current user.",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          userId: { type: "string" },
+          name: { type: "string" },
+          slug: { type: "string" },
+          description: { type: "string", nullable: true },
+          categoryId: { type: "string" },
+          logo: { type: "string", nullable: true },
+          banner: { type: "string", nullable: true },
+          address: { type: "string", nullable: true },
+          latitude: { type: "string", nullable: true },
+          longitude: { type: "string", nullable: true },
+          isActive: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        },
+        required: [
+          "id",
+          "userId",
+          "name",
+          "slug",
+          "description",
+          "categoryId",
+          "logo",
+          "banner",
+          "address",
+          "latitude",
+          "longitude",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      }
+    },
+    example: [
+      {
+        id: "string",
+        userId: "string",
+        name: "string",
+        slug: "string",
+        description: "string",
+        categoryId: "string",
+        logo: "string",
+        banner: "string",
+        address: "string",
+        latitude: "string",
+        longitude: "string",
+        isActive: true,
+        createdAt: "string",
+        updatedAt: "string"
+      }
+    ]
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findMine(@Session() session: UserSession) {
     return this.shopsService.findMine(session.user.id);
   }
 
   @Get("me/:slug")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Get current user's shop by slug"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Returns a shop owned by the current user."
+  @ApiParam({
+    name: "slug",
+    example: "string",
+    description: "Shop slug"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+    status: 200,
+    description: "Success - Returns a shop owned by the current user.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findMineBySlug(@Session() session: UserSession, @Param("slug") slug: string) {
     return this.shopsService.findMineBySlug(session.user.id, slug);
@@ -84,53 +328,268 @@ export class ShopsController {
   @ApiOperation({
     summary: "Get shop by slug"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Shop matching the specified slug."
+  @ApiParam({
+    name: "slug",
+    example: "string",
+    description: "Shop slug"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+    status: 200,
+    description: "Success - Shop matching the specified slug.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   findBySlug(@Param("slug") slug: string) {
     return this.shopsService.findBySlug(slug);
   }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Create a shop"
   })
   @ApiResponse({
     status: 201,
-    description: "Shop created successfully."
+    description: "Success - Shop created successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
   })
-  @ApiResponse({
-    status: 400,
-    description: "Invalid request data."
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 403,
-    description: "Shop limit reached for subscription plan."
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
   })
-  @ApiResponse({
-    status: 409,
-    description: "Shop slug already exists."
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   create(@Session() session: UserSession, @Body() dto: CreateShopDto) {
     return this.shopsService.create(session.user.id, dto);
   }
 
   @Patch(":slug")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Update a shop"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Shop updated successfully."
+  @ApiParam({
+    name: "slug",
+    example: "string",
+    description: "Current shop slug"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+    status: 200,
+    description: "Success - Shop updated successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiConflictResponse({
+    description: ERROR_DESCRIPTIONS.CONFLICT,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   update(
     @Session() session: UserSession,
@@ -141,16 +600,89 @@ export class ShopsController {
   }
 
   @Post(":slug/transfer")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Transfer shop ownership"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Shop ownership transferred successfully."
+  @ApiParam({
+    name: "slug",
+    example: "string",
+    description: "Shop slug"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+    status: 200,
+    description: "Success - Shop ownership transferred successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   transfer(
     @Session() session: UserSession,
@@ -161,16 +693,84 @@ export class ShopsController {
   }
 
   @Delete(":slug")
+  @ApiBearerAuth()
   @ApiOperation({
     summary: "Delete a shop"
   })
-  @ApiResponse({
-    status: 200,
-    description: "Shop deleted successfully."
+  @ApiParam({
+    name: "slug",
+    example: "string",
+    description: "Shop slug"
   })
   @ApiResponse({
-    status: 404,
-    description: "Shop not found."
+    status: 200,
+    description: "Success - Shop deleted successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        userId: { type: "string" },
+        name: { type: "string" },
+        slug: { type: "string" },
+        description: { type: "string", nullable: true },
+        categoryId: { type: "string" },
+        logo: { type: "string", nullable: true },
+        banner: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        latitude: { type: "string", nullable: true },
+        longitude: { type: "string", nullable: true },
+        isActive: { type: "boolean" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "userId",
+        "name",
+        "slug",
+        "description",
+        "categoryId",
+        "logo",
+        "banner",
+        "address",
+        "latitude",
+        "longitude",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      userId: "string",
+      name: "string",
+      slug: "string",
+      description: "string",
+      categoryId: "string",
+      logo: "string",
+      banner: "string",
+      address: "string",
+      latitude: "string",
+      longitude: "string",
+      isActive: true,
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
   })
   remove(@Session() session: UserSession, @Param("slug") slug: string) {
     return this.shopsService.remove(session.user.id, slug);

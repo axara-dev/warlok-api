@@ -3,7 +3,7 @@ import { IsIn, IsString } from "class-validator";
 
 export class FulfillmentMethodParamsDto {
   @ApiProperty({
-    example: "liwetarsi",
+    example: "",
     description: "Shop slug"
   })
   @IsString()
@@ -11,7 +11,7 @@ export class FulfillmentMethodParamsDto {
 
   @ApiProperty({
     enum: ["delivery", "pickup"],
-    example: "delivery",
+    example: "",
     description: "Fulfillment method type"
   })
   @IsIn(["delivery", "pickup"])

@@ -4,9 +4,9 @@ import { IsBoolean, IsObject, IsOptional } from "class-validator";
 export class UpsertFulfillmentMethodDto {
   @ApiPropertyOptional({
     example: {
-      radius: 3000,
-      minimumOrder: 25000,
-      deliveryFee: 5000
+      radius: 0,
+      minimumOrder: 0,
+      deliveryFee: 0
     },
     description:
       "Fulfillment configuration. Required fields depend on the fulfillment type."

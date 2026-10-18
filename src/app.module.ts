@@ -22,7 +22,8 @@ import { PaymentsModule } from "./payments/payments.module";
 import { LinksModule } from "./links/links.module";
 import { isWhitelistEnabled } from "./whitelist/whitelist";
 import { WhitelistModule } from "./whitelist/whitelist.module";
-import { KeysModule } from './keys/keys.module';
+import { KeysModule } from "./keys/keys.module";
+import { AppController } from "./app.controller";
 
 @Module({
   imports: [
@@ -50,7 +51,7 @@ import { KeysModule } from './keys/keys.module';
     ...(isWhitelistEnabled ? [WhitelistModule] : []),
     KeysModule
   ],
-  controllers: [UsersController],
+  controllers: [AppController, UsersController],
   providers: []
 })
 export class AppModule {}

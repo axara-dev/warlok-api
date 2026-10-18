@@ -3,7 +3,7 @@ import { IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateShopCategoryDto {
   @ApiProperty({
-    example: "Restaurant",
+    example: "",
     description: "Shop category name"
   })
   @IsString()
@@ -12,7 +12,7 @@ export class CreateShopCategoryDto {
   name: string;
 
   @ApiProperty({
-    example: "restaurant",
+    example: "",
     description: "Unique shop category slug"
   })
   @IsString()

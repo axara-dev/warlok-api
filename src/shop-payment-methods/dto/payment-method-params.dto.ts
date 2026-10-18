@@ -3,7 +3,7 @@ import { IsIn, IsString } from "class-validator";
 
 export class PaymentMethodParamsDto {
   @ApiProperty({
-    example: "liwetarsi",
+    example: "",
     description: "Shop slug"
   })
   @IsString()
@@ -11,7 +11,7 @@ export class PaymentMethodParamsDto {
 
   @ApiProperty({
     enum: ["cash", "bank_transfer", "qris"],
-    example: "bank_transfer",
+    example: "",
     description: "Payment method type"
   })
   @IsIn(["cash", "bank_transfer", "qris"])

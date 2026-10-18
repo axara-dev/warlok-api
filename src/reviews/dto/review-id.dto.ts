@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString } from "class-validator";
 
 export class ReviewIdDto {
   @ApiProperty({
-    example: "dfb9593c-c968-4833-b822-46244d841272",
+    example: "string",
     description: "Review ID"
   })
   @IsString()

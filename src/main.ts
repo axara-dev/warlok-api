@@ -1,5 +1,5 @@
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe, ConsoleLogger } from "@nestjs/common";
+import { ValidationPipe, ConsoleLogger, VersioningType } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
 import {
@@ -30,6 +30,13 @@ async function bootstrap() {
       logger: new ConsoleLogger({ json: isProd })
     }
   );
+
+  app.setGlobalPrefix("api");
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: "1"
+  });
 
   app.enableCors({
     origin: process.env.FRONTEND_URL,
@@ -73,7 +80,7 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT ?? 3000, "0.0.0.0");
+  await app.listen(process.env.PORT ?? 4000, "0.0.0.0");
 }
 
 bootstrap();
