@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { DrizzleModule } from "@nestjs/drizzle";
@@ -32,6 +34,18 @@ import { AppController } from "./app.controller";
       cache: true,
       validate: validateEnv
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: configService.get<number>("THROTTLE_TTL", 60_000),
+            limit: configService.get<number>("THROTTLE_LIMIT", 10)
+          }
+        ]
+      })
+    }),
     ScheduleModule.forRoot(),
     DrizzleModule.forRoot({ db, autoCloseConnection: false }),
     AuthModule.forRoot({ auth }),
@@ -52,6 +66,11 @@ import { AppController } from "./app.controller";
     KeysModule
   ],
   controllers: [AppController, UsersController],
-  providers: []
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ]
 })
 export class AppModule {}
