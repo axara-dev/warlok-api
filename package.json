@@ -24,7 +24,7 @@
     "db:studio": "drizzle-kit studio",
     "db:drop": "tsx ./scripts/drop.ts",
     "db:reset": "tsx ./scripts/drop.ts && drizzle-kit push",
-    "auth:schema": "pnpm dlx auth@latest generate --output ./src/database/schema/auth.ts --config ./src/auth.ts",
+    "auth:schema": "pnpm dlx auth@latest generate --output ./src/db/schema/auth.ts --config ./src/auth.ts",
     "email:dev": "email dev"
   },
   "dependencies": {
@@ -87,19 +87,13 @@
     "typescript-eslint": "^8.68.0"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+    "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
+    "collectCoverageFrom": ["**/*.(t|j)s"],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
