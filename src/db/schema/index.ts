@@ -16,3 +16,6 @@ export * from "./relations";
 export * from "./whitelist";
 export * from "./key";
 export * from "./shop-key";
+export * from "./conversation";
+export * from "./message";
+export * from "./conversation-event";

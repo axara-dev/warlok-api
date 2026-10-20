@@ -11,7 +11,7 @@ export class CreateOrderItemDto {
   productId: string;
 
   @ApiProperty({
-    example: 2,
+    example: 1,
     description: "Product quantity"
   })
   @IsInt()

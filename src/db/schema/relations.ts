@@ -16,6 +16,9 @@ import { orderItem } from "./order-item";
 import { review } from "./review";
 import { key } from "./key";
 import { shopKey } from "./shop-key";
+import { conversation } from "./conversation";
+import { message } from "./message";
+import { conversationEvent } from "./conversation-event";
 
 export const userRelations = relations(user, ({ one, many }) => ({
   sessions: many(session),
@@ -25,7 +28,8 @@ export const userRelations = relations(user, ({ one, many }) => ({
   payments: many(payment),
   orders: many(order),
   reviews: many(review),
-  keys: many(key)
+  keys: many(key),
+  conversations: many(conversation)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -77,7 +81,8 @@ export const shopRelations = relations(shop, ({ one, many }) => ({
   products: many(product),
   orders: many(order),
   reviews: many(review),
-  keys: many(shopKey)
+  keys: many(shopKey),
+  conversations: many(conversation)
 }));
 
 export const productCategoryRelations = relations(
@@ -194,3 +199,52 @@ export const shopKeyRelations = relations(shopKey, ({ one }) => ({
     references: [key.id]
   })
 }));
+
+export const conversationRelations = relations(
+  conversation,
+  ({ one, many }) => ({
+    shop: one(shop, {
+      fields: [conversation.shopId],
+      references: [shop.id]
+    }),
+    user: one(user, {
+      fields: [conversation.userId],
+      references: [user.id]
+    }),
+    messages: many(message),
+    events: many(conversationEvent)
+  })
+);
+
+export const messageRelations = relations(message, ({ one }) => ({
+  conversation: one(conversation, {
+    fields: [message.conversationId],
+    references: [conversation.id]
+  }),
+  shop: one(shop, {
+    fields: [message.shopId],
+    references: [shop.id]
+  }),
+  sender: one(user, {
+    fields: [message.senderId],
+    references: [user.id]
+  })
+}));
+
+export const conversationEventRelations = relations(
+  conversationEvent,
+  ({ one }) => ({
+    conversation: one(conversation, {
+      fields: [conversationEvent.conversationId],
+      references: [conversation.id]
+    }),
+    shop: one(shop, {
+      fields: [conversationEvent.shopId],
+      references: [shop.id]
+    }),
+    actor: one(user, {
+      fields: [conversationEvent.actorId],
+      references: [user.id]
+    })
+  })
+);

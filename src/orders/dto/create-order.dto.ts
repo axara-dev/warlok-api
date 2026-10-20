@@ -107,7 +107,7 @@ export class CreateOrderDto {
     example: [
       {
         productId: "",
-        quantity: 2
+        quantity: 1
       }
     ]
   })

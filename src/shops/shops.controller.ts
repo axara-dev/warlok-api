@@ -5,7 +5,8 @@ import {
   Get,
   Param,
   Patch,
-  Post
+  Post,
+  Query
 } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
@@ -36,6 +37,8 @@ import { CheckSlugDto } from "./dto/check-slug.dto";
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { TransferShopDto } from "./dto/transfer-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
+import { CreateConversationDto } from "./dto/create-conversation.dto";
+import { ListConversationsDto } from "./dto/list-conversations.dto";
 import { ShopsService } from "./shops.service";
 
 @ApiTags("Shops")
@@ -774,5 +777,166 @@ export class ShopsController {
   })
   remove(@Session() session: UserSession, @Param("slug") slug: string) {
     return this.shopsService.remove(session.user.id, slug);
+  }
+
+  @Post(":shopId/conversations")
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Start a conversation with a shop"
+  })
+  @ApiParam({
+    name: "shopId",
+    example: "string",
+    description: "Shop ID"
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Success - Conversation created successfully.",
+    schema: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        shopId: { type: "string" },
+        userId: { type: "string" },
+        counterpart: { type: "string", enum: ["agent", "human"] },
+        status: { type: "string", enum: ["open", "closed"] },
+        lastMessageAt: { type: "string", format: "date-time" },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" }
+      },
+      required: [
+        "id",
+        "shopId",
+        "userId",
+        "counterpart",
+        "status",
+        "lastMessageAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    example: {
+      id: "string",
+      shopId: "string",
+      userId: "string",
+      counterpart: "string",
+      status: "string",
+      lastMessageAt: "string",
+      createdAt: "string",
+      updatedAt: "string"
+    }
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiForbiddenResponse({
+    description: ERROR_DESCRIPTIONS.FORBIDDEN,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  createConversation(
+    @Session() session: UserSession,
+    @Param("shopId") shopId: string,
+    @Body() dto: CreateConversationDto
+  ) {
+    return this.shopsService.createConversation(session.user.id, shopId, dto);
+  }
+
+  @Get(":shopId/conversations")
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "List conversations in a shop"
+  })
+  @ApiParam({
+    name: "shopId",
+    example: "string",
+    description: "Shop ID"
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      "Success - Shop owner gets the shop inbox, other users get their own conversations.",
+    schema: {
+      type: "object",
+      properties: {
+        data: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              shopId: { type: "string" },
+              userId: { type: "string" },
+              counterpart: { type: "string", enum: ["agent", "human"] },
+              status: { type: "string", enum: ["open", "closed"] },
+              lastMessageAt: { type: "string", format: "date-time" },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
+          }
+        },
+        nextCursor: { type: "string", nullable: true }
+      },
+      required: ["data", "nextCursor"]
+    },
+    example: {
+      data: [
+        {
+          id: "string",
+          shopId: "string",
+          userId: "string",
+          counterpart: "string",
+          status: "string",
+          lastMessageAt: "string",
+          createdAt: "string",
+          updatedAt: "string"
+        }
+      ],
+      nextCursor: "string"
+    }
+  })
+  @ApiBadRequestResponse({
+    description: ERROR_DESCRIPTIONS.BAD_REQUEST,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiNotFoundResponse({
+    description: ERROR_DESCRIPTIONS.NOT_FOUND,
+    schema: ERROR_SCHEMA,
+    example: ERROR_EXAMPLE
+  })
+  @ApiTooManyRequestsResponse({
+    description: ERROR_DESCRIPTIONS.TOO_MANY_REQUESTS,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  @ApiInternalServerErrorResponse({
+    description: ERROR_DESCRIPTIONS.INTERNAL_SERVER_ERROR,
+    schema: ERROR_SCHEMA_REQUIRED,
+    example: ERROR_EXAMPLE
+  })
+  findConversations(
+    @Session() session: UserSession,
+    @Param("shopId") shopId: string,
+    @Query() query: ListConversationsDto
+  ) {
+    return this.shopsService.findConversations(session.user.id, shopId, query);
   }
 }

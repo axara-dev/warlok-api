@@ -4,16 +4,18 @@ import {
   Injectable,
   NotFoundException
 } from "@nestjs/common";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, desc, eq, lt } from "drizzle-orm";
 import { InjectDrizzle } from "@nestjs/drizzle";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { shop, user } from "../db/schema";
+import { conversation, shop, user } from "../db/schema";
 
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 
 import { CreateShopDto } from "./dto/create-shop.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
+import { CreateConversationDto } from "./dto/create-conversation.dto";
+import { ListConversationsDto } from "./dto/list-conversations.dto";
 
 @Injectable()
 export class ShopsService {
@@ -254,5 +256,108 @@ export class ShopsService {
     }
 
     return deletedShop;
+  }
+
+  async createConversation(
+    userId: string,
+    shopId: string,
+    dto: CreateConversationDto
+  ) {
+    const [foundShop] = await this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId
+      })
+      .from(shop)
+      .where(and(eq(shop.id, shopId), eq(shop.isActive, true)))
+      .limit(1);
+
+    if (!foundShop) {
+      throw new NotFoundException("Shop not found");
+    }
+
+    if (foundShop.userId === userId) {
+      throw new ForbiddenException(
+        "Shop owner cannot start a conversation with own shop"
+      );
+    }
+
+    const [createdConversation] = await this.db
+      .insert(conversation)
+      .values({
+        id: crypto.randomUUID(),
+        shopId,
+        userId,
+        counterpart: dto.counterpart
+      })
+      .returning();
+
+    return createdConversation;
+  }
+
+  async findConversations(
+    userId: string,
+    shopId: string,
+    query: ListConversationsDto
+  ) {
+    const [foundShop] = await this.db
+      .select({
+        id: shop.id,
+        userId: shop.userId
+      })
+      .from(shop)
+      .where(eq(shop.id, shopId))
+      .limit(1);
+
+    if (!foundShop) {
+      throw new NotFoundException("Shop not found");
+    }
+
+    const isOwner = foundShop.userId === userId;
+    const limit = query.limit ?? 20;
+
+    const conditions = [eq(conversation.shopId, shopId)];
+
+    if (!isOwner) {
+      conditions.push(eq(conversation.userId, userId));
+    }
+
+    if (query.counterpart) {
+      conditions.push(eq(conversation.counterpart, query.counterpart));
+    }
+
+    if (query.status) {
+      conditions.push(eq(conversation.status, query.status));
+    }
+
+    if (query.cursor) {
+      conditions.push(lt(conversation.lastMessageAt, new Date(query.cursor)));
+    }
+
+    const rows = await this.db
+      .select({
+        id: conversation.id,
+        shopId: conversation.shopId,
+        userId: conversation.userId,
+        counterpart: conversation.counterpart,
+        status: conversation.status,
+        lastMessageAt: conversation.lastMessageAt,
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt
+      })
+      .from(conversation)
+      .where(and(...conditions))
+      .orderBy(desc(conversation.lastMessageAt))
+      .limit(limit + 1);
+
+    const hasMore = rows.length > limit;
+    const data = hasMore ? rows.slice(0, limit) : rows;
+
+    return {
+      data,
+      nextCursor: hasMore
+        ? data[data.length - 1].lastMessageAt.toISOString()
+        : null
+    };
   }
 }

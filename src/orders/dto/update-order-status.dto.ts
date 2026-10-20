@@ -15,7 +15,7 @@ export type OrderStatus = (typeof orderStatuses)[number];
 export class UpdateOrderStatusDto {
   @ApiProperty({
     enum: orderStatuses,
-    example: "confirmed",
+    example: "",
     description: "New order status"
   })
   @IsIn(orderStatuses)

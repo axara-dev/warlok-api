@@ -26,6 +26,7 @@ import { isWhitelistEnabled } from "./whitelist/whitelist";
 import { WhitelistModule } from "./whitelist/whitelist.module";
 import { KeysModule } from "./keys/keys.module";
 import { AppController } from "./app.controller";
+import { ConversationsModule } from './conversations/conversations.module';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { AppController } from "./app.controller";
     PaymentsModule,
     LinksModule,
     ...(isWhitelistEnabled ? [WhitelistModule] : []),
-    KeysModule
+    KeysModule,
+    ConversationsModule
   ],
   controllers: [AppController, UsersController],
   providers: [
